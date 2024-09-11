@@ -1,6 +1,3 @@
-# Use postgres/example user/password credentials
-version: '3.8'
-
 volumes:
   database-data:
 
@@ -10,16 +7,6 @@ networks:
     external: false
 
 services:
-  database:
-    container_name: database
-    image: postgres
-    restart: always
-    volumes:
-      - database-data:/var/lib/postgresql/data/
-    env_file: .env
-    networks:
-      - stack
-
   calcom:
     image: calcom.docker.scarf.sh/calcom/cal.com
     build:
@@ -33,8 +20,7 @@ services:
         NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
         CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY}
         DATABASE_URL: ${DATABASE_URL}
-        DATABASE_DIRECT_URL: ${DATABASE_URL}
-      network: stack
+        DATABASE_DIRECT_URL: ${DATABASE_DIRECT_URL}
     restart: always
     networks:
       - stack
@@ -42,10 +28,22 @@ services:
       - 3000:3000
     env_file: .env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
-    depends_on:
-      - database
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL}
+
+  # Define the PostgreSQL database service
+  database:
+    image: postgres
+    ports:
+      - "25060:5432" # Map port 25060 on the host to 5432 inside the container
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    networks:
+      - stack
 
 # Optional use of Prisma Studio. In production, comment out or remove the section below to prevent unwanted access to your database.
   studio:
@@ -57,10 +55,8 @@ services:
       - 5555:5555
     env_file: .env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
-    depends_on:
-      - database
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_DIRECT_URL=${DATABASE_DIRECT_URL}
     command:
       - npx
       - prisma
