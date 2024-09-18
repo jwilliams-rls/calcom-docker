@@ -1,1 +1,22 @@
+{
+  "name": "Ubuntu Dev Environment",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",  // This specifies an Ubuntu-based image
+  "forwardPorts": [3000],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y curl nodejs npm && npm install -g yarn && yarn install && yarn dev",
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  }
+}
 
